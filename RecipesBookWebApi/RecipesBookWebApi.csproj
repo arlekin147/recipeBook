@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecipesBookDomain\RecipesBookDomain.csproj" />
+    <ProjectReference Include="..\RecipesBookBll\RecipesBookBll.csproj" />
+    <ProjectReference Include="..\RecipesBookDal\RecipesBookDal.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+
+</Project>
