@@ -4,8 +4,11 @@
     <ProjectReference Include="..\RecipesBookDomain\RecipesBookDomain.csproj" />
   </ItemGroup>
 
+
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
 </Project>

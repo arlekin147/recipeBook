@@ -10,10 +10,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using RecipesBookBll;
 using RecipesBookDal;
 using RecipesBookDomain.Repositories;
 using RecipesBookDomain.Services;
+using AutoMapper;
+using RecipesBookDomain.Configuration;
 
 namespace RecipesBookWebApi
 {
@@ -29,15 +32,22 @@ namespace RecipesBookWebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
             
             //BLL
             services.AddScoped<IRecipeService, RecipeService>();
+            services.AddScoped<IIngridientService, IngridientService>();
             
             //DAL
             services.AddScoped<IRecipeRepository, RecipeRepository>();
+            services.AddScoped<IIngridientRepository, IngridientRepository>();
             services.AddScoped<ApplicationContext>();
 
+            //Automapper
+            services.AddAutoMapper(typeof(Startup));
+
+            //Configuration
+            services.Configure<SqlConfiguration>(Configuration.GetSection("SqlConfiguration"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

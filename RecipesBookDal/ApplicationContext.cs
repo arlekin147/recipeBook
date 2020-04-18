@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using RecipesBookDomain.Configuration;
 using RecipesBookDomain.Models;
 
 namespace RecipesBookDal
@@ -7,9 +9,11 @@ namespace RecipesBookDal
     {
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<Ingridient> Ingridients { get; set; }
+        private SqlConfiguration _sqlConfiguration;
 
-        public ApplicationContext()
+        public ApplicationContext(IOptions<SqlConfiguration> sqlConfiguration)
         {
+            _sqlConfiguration = sqlConfiguration.Value;
             Database.EnsureCreated();
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -20,17 +24,17 @@ namespace RecipesBookDal
             modelBuilder.Entity<RecipeIngridient>()
                 .HasOne(ri => ri.Recipe)
                 .WithMany(i => i.RecipeIngridients)
-                .HasForeignKey(ri => ri.IngridientId);
+                .HasForeignKey(ri => ri.RecipeId);
 
             modelBuilder.Entity<RecipeIngridient>()
                 .HasOne(ri => ri.Ingridient)
                 .WithMany(r => r.RecipeIngridients)
-                .HasForeignKey(ri => ri.RecipeId);
+                .HasForeignKey(ri => ri.IngridientId);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=.\SQLEXPRESS;Database=myDataBase;Trusted_Connection=True;MultipleActiveResultSets=true;"); //TODO Add dbSettings from appconfig
+            optionsBuilder.UseSqlServer(_sqlConfiguration.ConnectionString); //TODO Add dbSettings from appconfig
         }
     }
 }
