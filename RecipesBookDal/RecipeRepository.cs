@@ -50,6 +50,11 @@ namespace RecipesBookDal
                 recipe.TotalCost = recipeUpdateModel.TotalCost.Value;
             }
 
+            if(recipeUpdateModel.IngridientIds != null && recipeUpdateModel.IngridientIds.Count() != 0)
+            {
+                recipe.IngridientsIds = recipeUpdateModel.IngridientIds;
+            }
+
             await _applicationContext.SaveChangesAsync();
 
             return recipe;

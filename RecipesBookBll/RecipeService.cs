@@ -28,7 +28,12 @@ namespace RecipesBookBll
 
             if (recipe.Time <= 0)
             {
-                throw new EntityException("Time can't be null");
+                throw new EntityException("Time can't be null or negative");
+            }
+
+            if(recipe.TotalCost <= 0)
+            {
+                throw new EntityException("Total cost can't be null or negative");
             }
 
             return await _recipeRepository.CreateRecipe(recipe);
@@ -43,14 +48,21 @@ namespace RecipesBookBll
         {
             await CheckExisting(id);
 
-            if (string.IsNullOrEmpty(recipeUpdateModel.Name))
+            await _ingridientService.GetIngridients(recipeUpdateModel.IngridientIds); //Checking that each ingridient exists
+
+            if ("".Equals(recipeUpdateModel.Name))
             {
-                throw new EntityException("Recipe's name can't be null or empty");
+                throw new EntityException("Recipe's name can't be empty");
             }
 
-            if (recipeUpdateModel.Time <= 0)
+            if (recipeUpdateModel.Time.HasValue && recipeUpdateModel.Time < 0)
             {
-                throw new EntityException("Time can't be null");
+                throw new EntityException("Time can't be negative");
+            }
+
+            if(recipeUpdateModel.TotalCost.HasValue && recipeUpdateModel.TotalCost < 0)
+            {
+                throw new EntityException("TotalCost can't be negative");
             }
 
             return await _recipeRepository.UpdateRecipe(id, recipeUpdateModel);

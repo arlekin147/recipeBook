@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using RecipesBookBll.Exceptions;
 using RecipesBookDomain.Models;
@@ -47,7 +48,14 @@ namespace RecipesBookBll
         }
         public async Task<List<Ingridient>> GetIngridients(IEnumerable<int> ingridientIds)
         {
-            return await _ingridientRepository.GetIngridients(ingridientIds);
+            var ingridients = await _ingridientRepository.GetIngridients(ingridientIds);
+
+            if(ingridients.Count != ingridientIds.Count())
+            {
+                throw new EntityDoesNotExistException("One or more ingridients don't exist");
+            }
+
+            return ingridients;
         }
         private async Task CheckExisting(int id)
         {

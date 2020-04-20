@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesBookDal", "RecipesBo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesBookDomain", "RecipesBookDomain\RecipesBookDomain.csproj", "{C5DE4E71-EF82-4BE9-8BD0-48C18F940AFD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesBookBllTests", "RecipesBookBllTests\RecipesBookBllTests.csproj", "{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +74,17 @@ Global
 		{C5DE4E71-EF82-4BE9-8BD0-48C18F940AFD}.Release|x64.Build.0 = Release|Any CPU
 		{C5DE4E71-EF82-4BE9-8BD0-48C18F940AFD}.Release|x86.ActiveCfg = Release|Any CPU
 		{C5DE4E71-EF82-4BE9-8BD0-48C18F940AFD}.Release|x86.Build.0 = Release|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Debug|x64.Build.0 = Debug|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Debug|x86.Build.0 = Debug|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Release|x64.ActiveCfg = Release|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Release|x64.Build.0 = Release|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Release|x86.ActiveCfg = Release|Any CPU
+		{B87C7D40-ACA5-48C8-92B5-13BDBCEEB6E5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
