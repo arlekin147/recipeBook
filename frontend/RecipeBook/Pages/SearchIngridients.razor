@@ -1,0 +1,150 @@
+﻿@page "/searchIngridients"
+
+@using RecipeBook.Data
+@using System.Net.Http
+@using RecipeBook.Extensions
+@using Newtonsoft.Json;
+@using System.Collections.Generic;
+@using RecipeBook.Fabrics;
+
+@inject IHttpClientFabric ClientFabric
+
+<h1>Search ingridients</h1>
+
+<p>Input search criterious and press "Search"</p>
+
+<div>
+<EditForm class="input-block" Model="@_searchIngridientsModel" OnValidSubmit="HandleSubmitButton">
+    <div>
+        <div class="input-block">
+            <div class="inline-element">Name: </div>
+            <InputText class="inline-element" id="name" @bind-Value="_searchIngridientsModel.Name" />
+        </div>
+        <div class="input-block">
+            <div class="inline-element">Minimum kcal: </div>
+            <InputText class="inline-element" id="lowKcal" @bind-Value="_lowKcal" />
+            <div class="inline-error-message">@_errorMessageLowKcal</div>
+        </div>
+        <div class="input-block">
+            <div class="inline-element">Maximum kcal: </div>
+            <InputText class="inline-element" id="highKcal" @bind-Value="_highKcal" />
+            <div class="inline-error-message">@_errorMessageHighKcal</div>
+        </div>
+        <button type="submit">Search</button>
+    </div>
+</EditForm>
+
+    <tbody>
+        <div>Finded ingridients:</div>
+        <tr>
+            <td>Name</td>
+            <td>Kcal</td>
+        </tr>
+        @foreach (var ingridient in _ingridients)
+        {
+            <tr>
+                <td>@ingridient.Name</td>
+                <td>@ingridient.Kcal</td>
+            </tr>
+        }
+    </tbody>
+</div>
+
+@code {
+    private SearchIngridientsModel _searchIngridientsModel = new SearchIngridientsModel();
+    private string _lowKcal;
+    private string _errorMessageLowKcal = "";
+    private string _highKcal;
+    private string _errorMessageHighKcal = "";
+    private List<Ingridient> _ingridients = new List<Ingridient>();
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task HandleSubmitButton()
+    {
+        var validationError = false;
+        _ingridients = new List<Ingridient>();
+
+        if (string.IsNullOrEmpty(_searchIngridientsModel.Name))
+        {
+            _searchIngridientsModel.Name = null;
+        }
+
+        if (!string.IsNullOrEmpty(_lowKcal))
+        {
+            var isParsingSuccesfull = int.TryParse(_lowKcal, out int parsedLowKcal);
+
+            if (isParsingSuccesfull)
+            {
+                if (parsedLowKcal < 0)
+                {
+                    validationError = true;
+                    _errorMessageLowKcal = "Low kcal can't be negative";
+                }
+                else
+                {
+                    _searchIngridientsModel.LowKcal = parsedLowKcal;
+                    _errorMessageLowKcal = "";
+                }
+            }
+            else
+            {
+                validationError = true;
+                _errorMessageLowKcal = "Low kcal should be a number";
+            }
+        }
+        else
+        {
+            _errorMessageLowKcal = "";
+        }
+
+        if (!string.IsNullOrEmpty(_highKcal))
+        {
+            var isParsingSuccesfull = int.TryParse(_highKcal, out int parsedHighKcal);
+            if (isParsingSuccesfull)
+            {
+                if (parsedHighKcal < 0)
+                {
+                    validationError = true;
+                    _errorMessageHighKcal = "High kcal can't be negative";
+                }
+                else
+                {
+                    _searchIngridientsModel.HighKcal = parsedHighKcal;
+                    _errorMessageHighKcal = "";
+                }
+            }
+            else
+            {
+                validationError = true;
+                _errorMessageHighKcal = "High kcal should be a number";
+            }
+        }
+        else
+        {
+            _errorMessageHighKcal = "";
+        }
+
+        if (!validationError)
+        {
+            var client = ClientFabric.GetClientWithDisabledCerts();
+
+            var response = await client.PostAsJsonAsync("https://localhost:5001/ingridient/search", _searchIngridientsModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var seriaizedResponse = await response.Content.ReadAsStringAsync();
+
+                _ingridients = JsonConvert.DeserializeObject<List<Ingridient>>(seriaizedResponse);
+            }
+            else
+            {
+                _ingridients = new List<Ingridient>();
+            }
+
+        }
+    }
+}
+

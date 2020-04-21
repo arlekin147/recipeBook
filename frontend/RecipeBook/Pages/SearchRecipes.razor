@@ -1,0 +1,237 @@
+﻿@page "/searchRecipes"
+
+@using RecipeBook.Data
+@using System.Net.Http
+@using RecipeBook.Extensions
+@using Newtonsoft.Json;
+@using System.Collections.Generic;
+@using System.Text;
+@using RecipeBook.Fabrics;
+
+@inject IHttpClientFabric ClientFabric
+
+<h1>Search recipes</h1>
+
+<p>Input search criterious and press "Search"</p>
+
+<div>
+<EditForm class="input-block" Model="@_searchRecipesModel" OnValidSubmit="HandleSubmitButton">
+    <div>
+        <div class="input-block">
+            <div class="inline-element">Name: </div>
+            <InputText class="inline-element" id="name" @bind-Value="_searchRecipesModel.Name" />
+        </div>
+        <div class="input-block">
+            <div class="inline-element">Minimum Time: </div>
+            <InputText class="inline-element" id="lowTime" @bind-Value="_lowTime" />
+            <div class="inline-error-message">@_errorMessageLowTime</div>
+        </div>
+        <div class="input-block">
+            <div class="inline-element">Maximum Time: </div>
+            <InputText class="inline-element" id="highTime" @bind-Value="_highTime" />
+            <div class="inline-error-message">@_errorMessageHighTime</div>
+        </div>
+        <div class="input-block">
+            <div class="inline-element">Minimum total cost: </div>
+            <InputText class="inline-element" id="lowTime" @bind-Value="_lowTotalCost" />
+            <div class="inline-error-message">@_errorMessageLowTime</div>
+        </div>
+        <div class="input-block">
+            <div class="inline-element">Maximum total cost: </div>
+            <InputText class="inline-element" id="highTime" @bind-Value="_highTotalCost" />
+            <div class="inline-error-message">@_errorMessageHighTime</div>
+        </div>
+        <button type="submit">Search</button>
+    </div>
+</EditForm>
+
+    <tbody>
+        <div>Finded recipes:</div>
+        <tr>
+            <td class="table-cell">Name</td>
+            <td class="table-cell">Time</td>
+            <td class="table-cell">Total cost</td>
+            <td class="table-cell">Ids of recipes</td> <!-- We don't have enoguht time to view correct desriptions of ingridients -->
+        </tr>
+        @foreach (var recipe in _recipes)
+        {
+            <tr>
+                <td class="table-cell">@recipe.Name</td>
+                <td class="table-cell">@recipe.Time</td>
+                <td class="table-cell">@recipe.TotalCost</td>
+                <td class="table-cell">@recipe.IngridientsDescription</td>
+            </tr>
+        }
+    </tbody>
+</div>
+
+@code {
+    private SearchRecipesModel _searchRecipesModel = new SearchRecipesModel();
+    private string _lowTime;
+    private string _errorMessageLowTime = "";
+    private string _highTime;
+    private string _errorMessageHighTime = "";
+    private string _lowTotalCost;
+    private string _errorMessageLowTotalCost = "";
+    private string _highTotalCost;
+    private string _errorMessageHighTotalCost = "";
+    private List<Recipe> _recipes = new List<Recipe>();
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task HandleSubmitButton()
+    {
+        var validationError = false;
+        _recipes = new List<Recipe>();
+        _searchRecipesModel.IngridientsIds = new List<int>();
+
+        if(string.IsNullOrEmpty(_searchRecipesModel.Name))
+        {
+            _searchRecipesModel.Name = null;
+        }
+
+        if (!string.IsNullOrEmpty(_lowTime))
+        {
+            var isParsingSuccesfull = int.TryParse(_lowTime, out int parsedLowTime);
+
+            if (isParsingSuccesfull)
+            {
+                if (parsedLowTime < 0)
+                {
+                    validationError = true;
+                    _errorMessageLowTime = "Low Time can't be negative";
+                }
+                else
+                {
+                    _searchRecipesModel.LowTime = parsedLowTime;
+                    _errorMessageLowTime = "";
+                }
+            }
+            else
+            {
+                validationError = true;
+                _errorMessageLowTime = "Low Time should be a number";
+            }
+        }
+        else
+        {
+            _errorMessageLowTime = "";
+        }
+
+        if (!string.IsNullOrEmpty(_highTime))
+        {
+            var isParsingSuccesfull = int.TryParse(_highTime, out int parsedHighTime);
+            if (isParsingSuccesfull)
+            {
+                if (parsedHighTime < 0)
+                {
+                    validationError = true;
+                    _errorMessageHighTime = "High Time can't be negative";
+                }
+                else
+                {
+                    _searchRecipesModel.HighTime = parsedHighTime;
+                    _errorMessageHighTime = "";
+                }
+            }
+            else
+            {
+                validationError = true;
+                _errorMessageHighTime = "High Time should be a number";
+            }
+        }
+        else
+        {
+            _errorMessageHighTime = "";
+        }  
+
+
+
+        if (!string.IsNullOrEmpty(_lowTotalCost))
+        {
+            var isParsingSuccesfull = int.TryParse(_lowTotalCost, out int parsedLowTotalCost);
+
+            if (isParsingSuccesfull)
+            {
+                if (parsedLowTotalCost < 0)
+                {
+                    validationError = true;
+                    _errorMessageLowTotalCost = "Low total cost can't be negative";
+                }
+                else
+                {
+                    _searchRecipesModel.LowTotalCost = parsedLowTotalCost;
+                    _errorMessageLowTotalCost = "";
+                }
+            }
+            else
+            {
+                validationError = true;
+                _errorMessageLowTime = "Low total cost should be a number";
+            }
+        }
+        else
+        {
+            _errorMessageLowTime = "";
+        }
+
+        if (!string.IsNullOrEmpty(_highTotalCost))
+        {
+            var isParsingSuccesfull = int.TryParse(_highTime, out int parsedHighTotalCost);
+            if (isParsingSuccesfull)
+            {
+                if (parsedHighTotalCost < 0)
+                {
+                    validationError = true;
+                    _errorMessageHighTotalCost = "High total cost can't be negative";
+                }
+                else
+                {
+                    _searchRecipesModel.HighTotalCost = parsedHighTotalCost;
+                    _errorMessageHighTotalCost = "";
+                }
+            }
+            else
+            {
+                validationError = true;
+                _errorMessageHighTotalCost = "High total cost should be a number";
+            }
+        }
+        else
+        {
+            _errorMessageHighTotalCost = "";
+        }
+
+
+
+        if (!validationError)
+        {
+            var client = ClientFabric.GetClientWithDisabledCerts();
+
+            var response = await client.PostAsJsonAsync("https://localhost:5001/recipe/search", _searchRecipesModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var seriaizedResponse = await response.Content.ReadAsStringAsync();
+                _recipes = JsonConvert.DeserializeObject<List<Recipe>>(seriaizedResponse);
+                foreach(var recipe in _recipes)
+                {
+                    var description = new StringBuilder();
+                    foreach(var id in recipe.IngridientsIds)
+                    {
+                        description.Append($"{id}, "); //TODO: add correct description of ingridient
+                    }
+                    recipe.IngridientsDescription = description.ToString();
+                }
+            }
+            else
+            {
+                _recipes = new List<Recipe>();
+            }
+
+        }
+    }
+}
+
