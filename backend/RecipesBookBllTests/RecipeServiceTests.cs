@@ -61,7 +61,7 @@ namespace RecipesBookBllTests
             var (recipeRepository, ingridientService, dataBase) = GetMocks();
             var recipeService = new RecipeService(recipeRepository.Object, ingridientService.Object);
             var idOfRecipeToBeCreated = dataBase.Count + 1;
-            var recipeModelToBeCreated = new Recipe() { Name = "CreatedRecipe1", Time = 300, TotalCost = 500, IngridientsIds = new List<int>{ 1 }};
+            var recipeModelToBeCreated = new Recipe() { Name = "CreatedRecipe1", Time = 300, TotalCost = 500, IngridientsIds = new List<int> { 1 } };
 
             //Act
             var createdRecipetModel = await recipeService.CreateRecipe(recipeModelToBeCreated);
@@ -109,7 +109,7 @@ namespace RecipesBookBllTests
             Assert.AreEqual("Recipe1", recipe.Name);
             Assert.AreEqual(1, recipe.Time);
             Assert.AreEqual(500, recipe.TotalCost);
-            Assert.AreEqual(new List<int>(){ 1 }, recipe.IngridientsIds);
+            Assert.AreEqual(new List<int>() { 1 }, recipe.IngridientsIds);
         }
 
         [Test]
@@ -126,6 +126,61 @@ namespace RecipesBookBllTests
             //Assert
             Assert.IsFalse(dataBase.ContainsKey(idOfRecipe));
         }
+
+        [Test]
+        public async Task SearchRecipes_ShouldReturn_Ingridients()
+        {
+            //Arrange
+            var (recipeRepository, ingridientService, dataBase) = GetMocks();
+            var recipeService = new RecipeService(recipeRepository.Object, ingridientService.Object);
+            var searchRecipeModel = new SearchRecipeModel();
+
+            //Act
+            var recipes = await recipeService.SearchRecipes(searchRecipeModel);
+
+            //Assert
+            Assert.AreEqual(dataBase.Select(p => p.Value).ToList(), recipes);
+        }
+
+        [Test, TestCaseSource("SearchRecipes_ThrowsException_Source")]
+        public void SearchIngridients_ShouldThrow_SearchException(SearchRecipeModel searchRecipeModel, string expectedMessage)
+        {
+            //Arrange
+            var (recipeRepository, ingridientService, dataBase) = GetMocks();
+            var recipeService = new RecipeService(recipeRepository.Object, ingridientService.Object);
+
+            //Act
+            var exception = Assert.ThrowsAsync<SearchException>(() => recipeService.SearchRecipes(searchRecipeModel));
+
+            //Assert
+            Assert.AreEqual(expectedMessage, exception.Message);
+        }
+
+        private static object[] SearchRecipes_ThrowsException_Source = new object[]
+        {
+            new object[] { new SearchRecipeModel(){Name = "", LowTime = 100, HighTime = 100,
+                                                              LowTotalCost = 100, HighTotalCost = 100,
+                                                              IngridientsIds = new List<int>(){ 1 }}, "Name for search can't be empty"},
+            new object[] { new SearchRecipeModel(){Name = "AGoodName", LowTime = -100, HighTime = 100,
+                                                              LowTotalCost = 100, HighTotalCost = 100,
+                                                              IngridientsIds = new List<int>(){ 1 }}, "The low time constraint can't be negative"},
+            new object[] { new SearchRecipeModel(){Name = "AGoodName", LowTime = 100, HighTime = -100, 
+                                                              LowTotalCost = 100, HighTotalCost = 100,
+                                                              IngridientsIds = new List<int>(){ 1 }}, "The high time constraint can't be negative"},
+            new object[] { new SearchRecipeModel(){Name = "AGoodName", LowTime = 100, HighTime = 50, 
+                                                              LowTotalCost = 100, HighTotalCost = 100,
+                                                              IngridientsIds = new List<int>(){ 1 }}, "The low time constraint can't be bigger than high time"},
+            new object[] { new SearchRecipeModel(){Name = "AGoodName", LowTime = 100, HighTime = 100, 
+                                                              LowTotalCost = -100, HighTotalCost = 100,
+                                                              IngridientsIds = new List<int>(){ 1 }}, "The low total cost constraint can't be negative"},
+            new object[] { new SearchRecipeModel(){Name = "AGoodName", LowTime = 100, HighTime = 100, 
+                                                              LowTotalCost = 100, HighTotalCost = -100,
+                                                              IngridientsIds = new List<int>(){ 1 }}, "The high total cost constraint can't be negative"},
+            new object[] { new SearchRecipeModel(){Name = "AGoodName", LowTime = 100, HighTime = 100, 
+                                                              LowTotalCost = 100, HighTotalCost = 50,
+                                                              IngridientsIds = new List<int>(){ 1 }}, "The low total cost constraint can't be bigger than high total cost"},
+            
+        };
 
         private (Mock<IRecipeRepository> recipeRepository, Mock<IIngridientService> ingridientService, Dictionary<int, Recipe> dataBase) GetMocks()
         {
@@ -150,11 +205,14 @@ namespace RecipesBookBllTests
                 dataBase.Remove(id);
                 return Task.CompletedTask;
             });
+            recipeRepository.Setup(r => r.SearchRecipes(It.IsAny<SearchRecipeModel>()))
+                                .ReturnsAsync((SearchRecipeModel searchRecipeModel) => dataBase.Select(p => p.Value).ToList());
+
 
             var ingridientService = new Mock<IIngridientService>(MockBehavior.Strict);
             ingridientService.Setup(s => s.GetIngridients(It.IsAny<IEnumerable<int>>())).ReturnsAsync
             (
-                (IEnumerable<int> ids) => 
+                (IEnumerable<int> ids) =>
                 {
                     return new List<Ingridient> { new Ingridient() { Name = "Ingridient1", Kcal = 100 } };
                 }

@@ -160,11 +160,48 @@ namespace RecipesBookBllTests
             var idOfIngridient = 100;
 
             //Act
-            var exception = Assert.ThrowsAsync<EntityDoesNotExistException>(() => ingridientService.GetIngridients(new int[]{idOfIngridient}));
+            var exception = Assert.ThrowsAsync<EntityDoesNotExistException>(() => ingridientService.GetIngridients(new int[] { idOfIngridient }));
 
             //Assert
             Assert.AreEqual("One or more ingridients don't exist", exception.Message);
         }
+
+        [Test]
+        public async Task SearchIngridients_ShouldReturn_Ingridients()
+        {
+            //Arrange
+            var (ingridientRepository, dataBase) = GetMocks();
+            var ingridientService = new IngridientService(ingridientRepository.Object);
+            var ingridientSearchModel = new SearchIngridientModel();
+
+            //Act
+            var ingridients = await ingridientService.SearchIngridients(ingridientSearchModel);
+
+            //Assert
+            Assert.AreEqual(dataBase.Select(p => p.Value).ToList(), ingridients);
+        }
+
+        [Test, TestCaseSource("SearchIngridients_ThrowsException_Source")]
+        public void SearchIngridients_ShouldThrow_SearchException(SearchIngridientModel searchIngridientModel, string expectedMessage)
+        {
+            //Arrange
+            var (ingridientRepository, dataBase) = GetMocks();
+            var ingridientService = new IngridientService(ingridientRepository.Object);
+
+            //Act
+            var exception = Assert.ThrowsAsync<SearchException>(() => ingridientService.SearchIngridients(searchIngridientModel));
+
+            //Assert
+            Assert.AreEqual(expectedMessage, exception.Message);
+        }
+
+        private static object[] SearchIngridients_ThrowsException_Source = new object[]
+        {
+            new object[] { new SearchIngridientModel(){Name = "", LowKcal = 100, HighKcal = 100}, "Name for search can't be empty"},
+            new object[] { new SearchIngridientModel(){Name = "AGoodName", LowKcal = -100, HighKcal = 100}, "The low kcal constraint can't be negative"},
+            new object[] { new SearchIngridientModel(){Name = "AGoodName", LowKcal = 100, HighKcal = -100}, "The high kcal constraint can't be negative"},
+            new object[] { new SearchIngridientModel(){Name = "AGoodName", LowKcal = 100, HighKcal = 50}, "The low kcal constraint can't be bigger than high kcal"},
+        };
 
         private (Mock<IIngridientRepository> ingridientRepository, Dictionary<int, Ingridient> dataBase) GetMocks()
         {
@@ -189,10 +226,13 @@ namespace RecipesBookBllTests
                 dataBase.Remove(id);
                 return Task.CompletedTask;
             });
-            ingridientRepository.Setup(r => r.GetIngridients(It.IsAny<IEnumerable<int>>())).ReturnsAsync((IEnumerable<int> ids) => 
+            ingridientRepository.Setup(r => r.GetIngridients(It.IsAny<IEnumerable<int>>())).ReturnsAsync((IEnumerable<int> ids) =>
             {
                 return dataBase.Where(p => ids.Contains(p.Key)).Select(p => p.Value).ToList();
             });
+            ingridientRepository.Setup(r => r.SearchIngridients(It.IsAny<SearchIngridientModel>()))
+                                .ReturnsAsync((SearchIngridientModel searchIngridientModel) => dataBase.Select(p => p.Value).ToList());
+
 
             return (ingridientRepository, dataBase);
         }
